@@ -1,10 +1,15 @@
 import express from "express";
+import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 import { convertHourStringToMinutes } from "./utils/convert-hour-string-to-minutes";
+import { convertMinutesToHourString } from "./utils/convert-minutes-to-hour-string";
 
 const app = express();
 
 app.use(express.json());
+
+//cors é para restringir o acesso de outros front-end.
+app.use(cors());
 
 const prisma = new PrismaClient();
 
@@ -22,7 +27,7 @@ app.get('/games', async(req, res) => {
   return res.json(games);
 })
 
-app.post('games/:id/ads', async(req, res) => {
+app.post('/games/:id/ads', async(req, res) => {
   const gameId = req.params.id;
   const body: any = req.body;
 
@@ -38,8 +43,7 @@ app.post('games/:id/ads', async(req, res) => {
       useVoiceChannel: body.useVoiceChannel,
     }
   })
-
-  return res.status(201).json(body);
+  return res.status(201).json(ad);
 })
 
 app.get('/games/:id/ads', async(req, res) => {
@@ -66,7 +70,9 @@ app.get('/games/:id/ads', async(req, res) => {
   return res.json(ads.map(ad => {
     return {
       ...ad,
-      weekDays: ad.weekDays.split(',')
+      weekDays: ad.weekDays.split(','),
+      hourStart: convertMinutesToHourString(ad.hourStart),
+      hourEnd: convertMinutesToHourString(ad.hourEnd)
     }
   }));
 })
